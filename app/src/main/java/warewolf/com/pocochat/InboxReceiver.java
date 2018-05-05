@@ -26,6 +26,12 @@ public class InboxReceiver extends BroadcastReceiver{
 
     public InboxReceiver(Context context){
 
+        /*
+            Sms.Inbox.Conversations was not working like the rest because the URI access by
+            CONTENT_URI was wrong. The correct URI can be passed in as:
+             Uri.parse("content://mms-sms/conversations")
+         */
+
         //SMS Inbox Lookup
         ContentResolver contentResolver = context.getContentResolver();
         Cursor smsCursor = contentResolver.query(Telephony.Sms.Inbox.CONTENT_URI,
