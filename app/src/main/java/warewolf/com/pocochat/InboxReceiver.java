@@ -5,22 +5,25 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class InboxReceiver extends BroadcastReceiver{
     private ArrayList<InboxCard> inboxCards = new ArrayList<>();
 
-    private String[] smsColumnProjection = new String[]{
-            Telephony.Sms.Inbox.PERSON,
-            Telephony.Sms.Inbox.ADDRESS };
-
     private String[] contactRawDataProjection = new String[]{
             ContactsContract.RawContacts._ID,
             ContactsContract.RawContacts.DISPLAY_NAME_PRIMARY};
+
+    private String[] conversationsProjection = new String[]{
+            Telephony.Sms.Conversations.PERSON, //Returns person's _ID
+            Telephony.Sms.Conversations.ADDRESS
+    };
 
     public InboxReceiver(){ }
 
@@ -32,20 +35,22 @@ public class InboxReceiver extends BroadcastReceiver{
              Uri.parse("content://mms-sms/conversations")
          */
 
-        //SMS Inbox Lookup
         ContentResolver contentResolver = context.getContentResolver();
-        Cursor smsCursor = contentResolver.query(Telephony.Sms.Inbox.CONTENT_URI,
-                smsColumnProjection,
+
+        //Conversation Lookup
+        Cursor conversationCursor = contentResolver.query(Uri.parse("content://mms-sms/conversations"),
+                conversationsProjection,
                 null,
                 null,
                 null);
 
-        HashMap<String, String> smsNumberHash = new HashMap<>();
-        if(smsCursor != null){
-            while(smsCursor.moveToNext()){
-                smsNumberHash.put(smsCursor.getString(0), smsCursor.getString(1));
+        HashMap<String, String> conversationHash = new HashMap<>();
+        if(conversationCursor != null){
+            while(conversationCursor.moveToNext()){
+                conversationHash.put(conversationCursor.getString(0), conversationCursor.getString(1));
             }
         }
+
 
         //Raw Data Lookup
         Cursor contactRawDataCursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI,
@@ -58,7 +63,7 @@ public class InboxReceiver extends BroadcastReceiver{
         StringBuilder builder = new StringBuilder();
         if(contactRawDataCursor != null){
             while(contactRawDataCursor.moveToNext()){
-                String number = smsNumberHash.get(contactRawDataCursor.getString(0));
+                String number = conversationHash.get(contactRawDataCursor.getString(0));
                 String name = contactRawDataCursor.getString(1);
                 if(name != null && number != null){
                     inboxCards.add(new InboxCard(name, number));
