@@ -1,6 +1,6 @@
 package warewolf.com.pocochat;
 
-public class InboxCard {
+public class InboxCardViewModel {
     private String heading;
     private String description;
 
@@ -8,7 +8,7 @@ public class InboxCard {
         return heading;
     }
 
-    public InboxCard(String heading, String description) {
+    public InboxCardViewModel(String heading, String description) {
         this.heading = heading;
         this.description = description;
     }

@@ -11,10 +11,10 @@ import java.util.List;
 
 public class InboxCardAdapter extends RecyclerView.Adapter<InboxCardAdapter.CardViewHolder> {
 
-    private List<InboxCard> conversationCards;
+    private List<InboxCardViewModel> conversationCards;
     private Context context;
 
-    public InboxCardAdapter(List<InboxCard> conversationCards, Context context) {
+    public InboxCardAdapter(List<InboxCardViewModel> conversationCards, Context context) {
         this.conversationCards = conversationCards;
         this.context = context;
     }
@@ -40,7 +40,7 @@ public class InboxCardAdapter extends RecyclerView.Adapter<InboxCardAdapter.Card
 
     @Override
     public void onBindViewHolder(CardViewHolder holder, int position) {
-        InboxCard card = conversationCards.get(position);
+        InboxCardViewModel card = conversationCards.get(position);
         holder.header.setText(card.getHeading());
         holder.description.setText(card.getDescription());
     }

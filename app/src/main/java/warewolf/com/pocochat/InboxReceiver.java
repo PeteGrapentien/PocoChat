@@ -9,12 +9,17 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.Telephony;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+        /*
+            Sms.Inbox.Conversations was not working like the rest because the URI access by
+            CONTENT_URI was wrong. The correct URI can be passed in as:
+             Uri.parse("content://mms-sms/conversations")
+         */
+
 public class InboxReceiver extends BroadcastReceiver{
-    private ArrayList<InboxCard> inboxCards = new ArrayList<>();
+    private ArrayList<InboxCardViewModel> inboxCardViewModels = new ArrayList<>();
 
     private String[] contactRawDataProjection = new String[]{
             ContactsContract.RawContacts._ID,
@@ -25,24 +30,52 @@ public class InboxReceiver extends BroadcastReceiver{
             Telephony.Sms.Conversations.ADDRESS
     };
 
+    private ContentResolver contentResolver;
+
     public InboxReceiver(){ }
 
     public InboxReceiver(Context context){
 
-        /*
-            Sms.Inbox.Conversations was not working like the rest because the URI access by
-            CONTENT_URI was wrong. The correct URI can be passed in as:
-             Uri.parse("content://mms-sms/conversations")
-         */
+        contentResolver = context.getContentResolver();
 
-        ContentResolver contentResolver = context.getContentResolver();
+        Cursor nameCursor = lookupContactNames();
+        Cursor numberCursor = lookupContactNumbers();
+        HashMap<String, String> phoneNumberHash = createNumberHash(numberCursor);
+        addNamesAndNumbersToCards(nameCursor, phoneNumberHash);
 
-        //Conversation Lookup
+    }
+
+    private void addNamesAndNumbersToCards(Cursor nameCursor, HashMap<String, String> phoneNumberHash){
+        if(nameCursor != null){
+            while(nameCursor.moveToNext()){
+                String number = phoneNumberHash.get(nameCursor.getString(0));
+                String name = nameCursor.getString(1);
+                if(name != null && number != null){
+                    inboxCardViewModels.add(new InboxCardViewModel(name, number));
+                }
+            }
+        }
+    }
+
+    private Cursor lookupContactNames(){
+        Cursor nameCursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI,
+                contactRawDataProjection,
+                null,
+                null,
+                null);
+        return nameCursor;
+    }
+
+    private Cursor lookupContactNumbers(){
         Cursor conversationCursor = contentResolver.query(Uri.parse("content://mms-sms/conversations"),
                 conversationsProjection,
                 null,
                 null,
                 null);
+        return conversationCursor;
+    }
+
+    private HashMap<String, String> createNumberHash(Cursor conversationCursor){
 
         HashMap<String, String> conversationHash = new HashMap<>();
         if(conversationCursor != null){
@@ -50,30 +83,11 @@ public class InboxReceiver extends BroadcastReceiver{
                 conversationHash.put(conversationCursor.getString(0), conversationCursor.getString(1));
             }
         }
-
-
-        //Raw Data Lookup
-        Cursor contactRawDataCursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI,
-                contactRawDataProjection,
-                null,
-                null,
-                null);
-
-        HashMap<String, String> nameNumberHash = new HashMap<>();
-        StringBuilder builder = new StringBuilder();
-        if(contactRawDataCursor != null){
-            while(contactRawDataCursor.moveToNext()){
-                String number = conversationHash.get(contactRawDataCursor.getString(0));
-                String name = contactRawDataCursor.getString(1);
-                if(name != null && number != null){
-                    inboxCards.add(new InboxCard(name, number));
-                }
-            }
-        }
+        return conversationHash;
     }
 
-    public ArrayList<InboxCard> getInboxCards() {
-        return inboxCards;
+    public ArrayList<InboxCardViewModel> getInboxCardViewModels() {
+        return inboxCardViewModels;
     }
 
     @Override

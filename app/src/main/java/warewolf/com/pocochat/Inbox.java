@@ -5,9 +5,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Inbox extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
@@ -25,7 +22,7 @@ public class Inbox extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(Inbox.this));
         inboxReceiver = new InboxReceiver(this);
 
-        adapter = new InboxCardAdapter(inboxReceiver.getInboxCards(),this);
+        adapter = new InboxCardAdapter(inboxReceiver.getInboxCardViewModels(),this);
         recyclerView.setAdapter(adapter);
     }
 }
