@@ -41,8 +41,8 @@ public class InboxCardAdapter extends RecyclerView.Adapter<InboxCardAdapter.Card
     @Override
     public void onBindViewHolder(CardViewHolder holder, int position) {
         InboxCardViewModel card = conversationCards.get(position);
-        holder.header.setText(card.getHeading());
-        holder.description.setText(card.getDescription());
+        holder.header.setText(card.getName());
+        holder.description.setText(card.getNumber());
     }
 
     public class CardViewHolder extends RecyclerView.ViewHolder{
